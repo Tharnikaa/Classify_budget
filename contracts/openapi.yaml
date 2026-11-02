@@ -1,0 +1,1316 @@
+openapi: 3.1.0
+info:
+  title: ExpenseIt API
+  version: 1.0.0
+  description: >
+    OpenAPI 3.1 contract for ExpenseIt (Phase 0 Synchronization Baseline).
+    All monetary values are represented in integer INR paise (e.g., INR 500.00 = 50000).
+servers:
+  - url: http://localhost:8000
+    description: Local FastAPI server (use LAN IP on physical Expo devices)
+
+security:
+  - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    IdempotencyKeyHeader:
+      name: Idempotency-Key
+      in: header
+      required: false
+      description: Client-generated UUID preventing duplicate claim creation or double payouts on mobile retries.
+      schema:
+        type: string
+
+  schemas:
+    ErrorEnvelope:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: [object, "null"]
+
+    RoleEnum:
+      type: string
+      enum: [EMPLOYEE, DEPT_HEAD, FINANCE_MANAGER, FINANCE_HEAD]
+
+    SpendTierEnum:
+      type: string
+      enum: [JUNIOR, SENIOR, MANAGER, NONE]
+
+    ClaimStatusEnum:
+      type: string
+      enum:
+        - DRAFT
+        - PENDING_APPROVAL
+        - RETURNED_FOR_CORRECTION
+        - APPROVED_BY_DEPT
+        - ESCALATED_TO_FH
+        - VERIFIED_FOR_DISPATCH
+        - DISPATCHED
+        - DISPATCH_FAILED
+        - REJECTED
+        - WITHDRAWN
+
+    ItemTagEnum:
+      type: string
+      enum:
+        - meal
+        - alcohol
+        - tobacco
+        - gift_card
+        - personal
+        - lodging
+        - transport
+        - office_supply
+        - software
+        - telecom
+        - tax_fee
+        - other
+
+    NotificationTypeEnum:
+      type: string
+      enum:
+        - CLAIM_SUBMITTED
+        - DEPT_APPROVED
+        - CLAIM_RETURNED
+        - CLAIM_REJECTED
+        - CLAIM_ESCALATED
+        - OVERRIDE_APPLIED
+        - FUNDS_DISPATCHED
+        - POLICY_LIMIT_UPDATED
+
+    UserProfile:
+      type: object
+      required: [id, persona_key, full_name, email, role, spend_tier, department_id, department_name]
+      properties:
+        id:
+          type: string
+        persona_key:
+          type: string
+        full_name:
+          type: string
+        email:
+          type: string
+        role:
+          $ref: "#/components/schemas/RoleEnum"
+        spend_tier:
+          $ref: "#/components/schemas/SpendTierEnum"
+        department_id:
+          type: string
+        department_name:
+          type: string
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    DevSwitchRoleRequest:
+      type: object
+      required: [persona_key]
+      properties:
+        persona_key:
+          type: string
+          example: junior_employee
+
+    AuthTokenResponse:
+      type: object
+      required: [access_token, token_type, user]
+      properties:
+        access_token:
+          type: string
+        token_type:
+          type: string
+          default: bearer
+        user:
+          $ref: "#/components/schemas/UserProfile"
+
+    CategoryItem:
+      type: object
+      required: [code, name, description, is_active]
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        is_active:
+          type: boolean
+
+    CreateCategoryRequest:
+      type: object
+      required: [code, name, description, junior_cap_paise, senior_cap_paise, manager_cap_paise]
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        junior_cap_paise:
+          type: integer
+          minimum: 0
+        senior_cap_paise:
+          type: integer
+          minimum: 0
+        manager_cap_paise:
+          type: integer
+          minimum: 0
+
+    PolicyLimitsResponse:
+      type: object
+      required: [base_currency, company_timezone, blacklisted_item_tags, spend_tiers, tier_category_caps_paise]
+      properties:
+        base_currency:
+          type: string
+          example: INR
+        company_timezone:
+          type: string
+          example: Asia/Kolkata
+        blacklisted_item_tags:
+          type: array
+          items:
+            type: string
+        spend_tiers:
+          type: object
+          additionalProperties:
+            type: object
+            required: [display_name, monthly_cap_paise]
+            properties:
+              display_name:
+                type: string
+              monthly_cap_paise:
+                type: integer
+        tier_category_caps_paise:
+          type: object
+          additionalProperties:
+            type: object
+            required: [JUNIOR, SENIOR, MANAGER]
+            properties:
+              JUNIOR:
+                type: integer
+              SENIOR:
+                type: integer
+              MANAGER:
+                type: integer
+
+    UpdatePolicyLimitsRequest:
+      type: object
+      properties:
+        tier_monthly_caps_paise:
+          type: object
+          additionalProperties:
+            type: integer
+        tier_category_caps_paise:
+          type: object
+          additionalProperties:
+            type: object
+            additionalProperties:
+              type: integer
+
+    MonthlyQuotaSummary:
+      type: object
+      required:
+        - user_id
+        - spend_tier
+        - year_month
+        - currency
+        - monthly_cap_paise
+        - disbursed_paise
+        - reserved_paise
+        - remaining_paise
+      properties:
+        user_id:
+          type: string
+        spend_tier:
+          $ref: "#/components/schemas/SpendTierEnum"
+        year_month:
+          type: string
+          example: "2026-11"
+        currency:
+          type: string
+          example: INR
+        monthly_cap_paise:
+          type: integer
+        disbursed_paise:
+          type: integer
+        reserved_paise:
+          type: integer
+        remaining_paise:
+          type: integer
+
+    ExtractedLineItem:
+      type: object
+      required: [description, quantity, amount_paise, item_tag]
+      properties:
+        description:
+          type: string
+        quantity:
+          type: number
+        unit_price_paise:
+          type: [integer, "null"]
+        amount_paise:
+          type: integer
+        item_tag:
+          $ref: "#/components/schemas/ItemTagEnum"
+
+    ExtractedReceipt:
+      type: object
+      required:
+        - schema_version
+        - receipt_id
+        - image_sha256
+        - is_valid_receipt
+        - detected_currency
+        - tax_amount_paise
+        - total_amount_paise
+        - suggested_category_code
+        - confidence_score
+        - field_confidence
+        - line_items
+      properties:
+        schema_version:
+          type: string
+        receipt_id:
+          type: string
+        image_url:
+          type: [string, "null"]
+        image_sha256:
+          type: string
+        image_phash:
+          type: [string, "null"]
+        is_valid_receipt:
+          type: boolean
+        vendor_name:
+          type: [string, "null"]
+        vendor_tax_id:
+          type: [string, "null"]
+        invoice_date:
+          type: [string, "null"]
+        detected_currency:
+          type: string
+        subtotal_amount_paise:
+          type: [integer, "null"]
+        tax_amount_paise:
+          type: integer
+        total_amount_paise:
+          type: integer
+        suggested_category_code:
+          type: string
+        confidence_score:
+          type: number
+        field_confidence:
+          type: object
+          required: [vendor, date, total, category]
+          properties:
+            vendor:
+              type: number
+            date:
+              type: number
+            total:
+              type: number
+            category:
+              type: number
+        line_items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExtractedLineItem"
+
+    MockScanRequest:
+      type: object
+      required: [preset]
+      properties:
+        preset:
+          type: string
+          enum:
+            - clean_meal
+            - hotel_with_alcohol
+            - over_cap_flight
+            - blurry_missing_date
+            - foreign_usd
+
+    ClaimLineItemInput:
+      type: object
+      required: [description, quantity, amount_paise, item_tag]
+      properties:
+        description:
+          type: string
+        quantity:
+          type: number
+          default: 1
+        unit_price_paise:
+          type: [integer, "null"]
+        amount_paise:
+          type: integer
+        item_tag:
+          $ref: "#/components/schemas/ItemTagEnum"
+
+    ClaimLineItem:
+      type: object
+      required: [description, quantity, amount_paise, item_tag, is_excluded]
+      properties:
+        description:
+          type: string
+        quantity:
+          type: number
+        unit_price_paise:
+          type: [integer, "null"]
+        amount_paise:
+          type: integer
+        item_tag:
+          type: string
+        is_excluded:
+          type: boolean
+
+    ClaimPrecheckRequest:
+      type: object
+      required: [vendor_name, invoice_date, category_code, currency, total_amount_paise, tax_amount_paise, line_items]
+      properties:
+        receipt_id:
+          type: [string, "null"]
+        vendor_name:
+          type: string
+        invoice_date:
+          type: string
+        category_code:
+          type: string
+        currency:
+          type: string
+          default: INR
+        total_amount_paise:
+          type: integer
+        tax_amount_paise:
+          type: integer
+          default: 0
+        line_items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ClaimLineItemInput"
+
+    ClaimPrecheckResponse:
+      type: object
+      required:
+        - can_submit
+        - blocking_errors
+        - warnings
+        - total_amount_paise
+        - blacklisted_deduction_paise
+        - eligible_amount_paise
+        - category_cap_paise
+        - remaining_monthly_paise
+        - will_escalate_to_fh
+      properties:
+        can_submit:
+          type: boolean
+        blocking_errors:
+          type: array
+          items:
+            type: string
+        warnings:
+          type: array
+          items:
+            type: string
+        total_amount_paise:
+          type: integer
+        blacklisted_deduction_paise:
+          type: integer
+        eligible_amount_paise:
+          type: integer
+        category_cap_paise:
+          type: integer
+        remaining_monthly_paise:
+          type: integer
+        will_escalate_to_fh:
+          type: boolean
+
+    CreateClaimRequest:
+      type: object
+      required: [vendor_name, invoice_date, category_code, currency, total_amount_paise, tax_amount_paise, line_items]
+      properties:
+        receipt_id:
+          type: [string, "null"]
+        vendor_name:
+          type: string
+        invoice_date:
+          type: string
+        category_code:
+          type: string
+        description:
+          type: [string, "null"]
+        currency:
+          type: string
+          default: INR
+        total_amount_paise:
+          type: integer
+        tax_amount_paise:
+          type: integer
+          default: 0
+        submit_immediately:
+          type: boolean
+          default: true
+        line_items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ClaimLineItemInput"
+
+    UpdateClaimRequest:
+      type: object
+      properties:
+        vendor_name:
+          type: string
+        invoice_date:
+          type: string
+        category_code:
+          type: string
+        description:
+          type: [string, "null"]
+        total_amount_paise:
+          type: integer
+        tax_amount_paise:
+          type: integer
+        resubmit:
+          type: boolean
+          default: false
+        line_items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ClaimLineItemInput"
+
+    ClaimEvent:
+      type: object
+      required: [id, actor_id, actor_name, actor_role, action, from_status, to_status, created_at]
+      properties:
+        id:
+          type: string
+        actor_id:
+          type: string
+        actor_name:
+          type: string
+        actor_role:
+          type: string
+        action:
+          type: string
+        from_status:
+          type: [string, "null"]
+        to_status:
+          type: string
+        comment:
+          type: [string, "null"]
+        created_at:
+          type: string
+
+    ExpenseClaim:
+      type: object
+      required:
+        - schema_version
+        - id
+        - claimant_id
+        - claimant_name
+        - role
+        - spend_tier
+        - department_id
+        - department_name
+        - vendor_name
+        - invoice_date
+        - category_code
+        - currency
+        - total_amount_paise
+        - tax_amount_paise
+        - blacklisted_deduction_paise
+        - eligible_amount_paise
+        - is_over_cap
+        - over_cap_reasons
+        - status
+        - line_items
+        - ocr_diff
+        - policy_snapshot
+        - events
+        - created_at
+        - updated_at
+      properties:
+        schema_version:
+          type: string
+        id:
+          type: string
+        receipt_id:
+          type: [string, "null"]
+        receipt_url:
+          type: [string, "null"]
+        claimant_id:
+          type: string
+        claimant_name:
+          type: string
+        role:
+          $ref: "#/components/schemas/RoleEnum"
+        spend_tier:
+          $ref: "#/components/schemas/SpendTierEnum"
+        department_id:
+          type: string
+        department_name:
+          type: string
+        vendor_name:
+          type: string
+        invoice_date:
+          type: string
+        category_code:
+          type: string
+        description:
+          type: [string, "null"]
+        currency:
+          type: string
+        total_amount_paise:
+          type: integer
+        tax_amount_paise:
+          type: integer
+        blacklisted_deduction_paise:
+          type: integer
+        eligible_amount_paise:
+          type: integer
+        approved_amount_paise:
+          type: [integer, "null"]
+        is_over_cap:
+          type: boolean
+        over_cap_reasons:
+          type: array
+          items:
+            type: string
+        status:
+          $ref: "#/components/schemas/ClaimStatusEnum"
+        rejection_reason:
+          type: [string, "null"]
+        return_comment:
+          type: [string, "null"]
+        payment_reference:
+          type: [string, "null"]
+        line_items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ClaimLineItem"
+        ocr_diff:
+          type: object
+          additionalProperties:
+            type: object
+            required: [ocr_value, submitted_value]
+            properties:
+              ocr_value: {}
+              submitted_value: {}
+        policy_snapshot:
+          type: object
+          required:
+            - spend_tier
+            - category_code
+            - category_cap_paise
+            - monthly_cap_paise
+            - blacklisted_item_tags
+            - captured_at
+          properties:
+            spend_tier:
+              type: string
+            category_code:
+              type: string
+            category_cap_paise:
+              type: integer
+            monthly_cap_paise:
+              type: integer
+            blacklisted_item_tags:
+              type: array
+              items:
+                type: string
+            captured_at:
+              type: string
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/ClaimEvent"
+        submitted_at:
+          type: [string, "null"]
+        approved_at:
+          type: [string, "null"]
+        verified_at:
+          type: [string, "null"]
+        dispatched_at:
+          type: [string, "null"]
+        created_at:
+          type: string
+        updated_at:
+          type: string
+
+    WorkflowCommentRequest:
+      type: object
+      properties:
+        comment:
+          type: [string, "null"]
+
+    WorkflowReasonRequest:
+      type: object
+      required: [reason]
+      properties:
+        reason:
+          type: string
+          minLength: 3
+
+    FinanceHeadOverrideRequest:
+      type: object
+      required: [decision, comment]
+      properties:
+        decision:
+          type: string
+          enum: [APPROVE_FULL_ELIGIBLE, CLAMP_TO_CAP, REJECT]
+        custom_approved_paise:
+          type: [integer, "null"]
+        comment:
+          type: string
+
+    DispatchFundsRequest:
+      type: object
+      properties:
+        payment_reference:
+          type: [string, "null"]
+        simulate_failure:
+          type: boolean
+          default: false
+
+    NotificationItem:
+      type: object
+      required: [schema_version, id, user_id, type, title, message, deep_link, is_read, created_at]
+      properties:
+        schema_version:
+          type: string
+        id:
+          type: string
+        user_id:
+          type: string
+        actor_id:
+          type: [string, "null"]
+        type:
+          $ref: "#/components/schemas/NotificationTypeEnum"
+        title:
+          type: string
+        message:
+          type: string
+        claim_id:
+          type: [string, "null"]
+        deep_link:
+          type: string
+        is_read:
+          type: boolean
+        created_at:
+          type: string
+
+    PushTokenRequest:
+      type: object
+      required: [expo_push_token, platform]
+      properties:
+        expo_push_token:
+          type: string
+        platform:
+          type: string
+          enum: [android, ios, web]
+
+    AnalyticsOverviewResponse:
+      type: object
+      required:
+        - currency
+        - total_claims_count
+        - total_disbursed_paise
+        - total_pending_paise
+        - escalated_count
+        - spend_by_department
+        - spend_by_category
+      properties:
+        currency:
+          type: string
+        total_claims_count:
+          type: integer
+        total_disbursed_paise:
+          type: integer
+        total_pending_paise:
+          type: integer
+        escalated_count:
+          type: integer
+        spend_by_department:
+          type: object
+          additionalProperties:
+            type: integer
+        spend_by_category:
+          type: object
+          additionalProperties:
+            type: integer
+
+paths:
+  /api/v1/health:
+    get:
+      tags: [System]
+      summary: Health check
+      security: []
+      responses:
+        "200":
+          description: Service healthy
+
+  /api/v1/auth/login:
+    post:
+      tags: [Auth]
+      summary: Authenticate with email and password
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Issued Bearer JWT
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthTokenResponse"
+        "401":
+          description: Invalid credentials
+
+  /api/v1/auth/me:
+    get:
+      tags: [Auth]
+      summary: Return authenticated user profile
+      responses:
+        "200":
+          description: Current user profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+
+  /api/v1/auth/dev-personas:
+    get:
+      tags: [Auth]
+      summary: List seeded personas (APP_ENV=development only)
+      security: []
+      responses:
+        "200":
+          description: Seeded personas list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserProfile"
+        "404":
+          description: Disabled outside development environment
+
+  /api/v1/auth/dev-switch-role:
+    post:
+      tags: [Auth]
+      summary: Instant dev persona token switcher (APP_ENV=development only)
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DevSwitchRoleRequest"
+      responses:
+        "200":
+          description: Token for requested seeded persona
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthTokenResponse"
+        "404":
+          description: Disabled outside development environment
+
+  /api/v1/categories:
+    get:
+      tags: [Policies]
+      summary: List active dynamic expense categories
+      responses:
+        "200":
+          description: Categories list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CategoryItem"
+    post:
+      tags: [Policies]
+      summary: Create a dynamic expense category (FINANCE_MANAGER only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCategoryRequest"
+      responses:
+        "201":
+          description: Category created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CategoryItem"
+
+  /api/v1/policies/limits:
+    get:
+      tags: [Policies]
+      summary: Get spend tier monthly caps and per-category INR paise limits
+      responses:
+        "200":
+          description: Current policy limits matrix
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PolicyLimitsResponse"
+    put:
+      tags: [Policies]
+      summary: Update spend tier or category limits (FINANCE_MANAGER only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePolicyLimitsRequest"
+      responses:
+        "200":
+          description: Updated policy limits matrix
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PolicyLimitsResponse"
+
+  /api/v1/quotas/me:
+    get:
+      tags: [Policies]
+      summary: Get current user's IST calendar-month quota usage and remaining balance
+      parameters:
+        - name: year_month
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Monthly quota summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MonthlyQuotaSummary"
+
+  /api/v1/ocr/scan:
+    post:
+      tags: [OCR]
+      summary: Upload a receipt image and run OCR extraction
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Extracted receipt payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExtractedReceipt"
+
+  /api/v1/ocr/mock-scan:
+    post:
+      tags: [OCR]
+      summary: Return a deterministic preset receipt extraction for UI development
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MockScanRequest"
+      responses:
+        "200":
+          description: Extracted receipt preset
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExtractedReceipt"
+
+  /api/v1/receipts/{receipt_id}/image:
+    get:
+      tags: [OCR]
+      summary: Fetch authenticated receipt image bytes
+      parameters:
+        - name: receipt_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Receipt image stream
+
+  /api/v1/claims/precheck:
+    post:
+      tags: [Claims]
+      summary: Pre-submission policy check (blacklist deductions, category & monthly caps)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClaimPrecheckRequest"
+      responses:
+        "200":
+          description: Precheck result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClaimPrecheckResponse"
+
+  /api/v1/claims:
+    get:
+      tags: [Claims]
+      summary: List claims scoped to caller's role and department
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/ClaimStatusEnum"
+        - name: scope
+          in: query
+          required: false
+          description: "'mine' for personal claims or 'queue' for actionable approvals/verifications"
+          schema:
+            type: string
+            enum: [mine, queue, all]
+      responses:
+        "200":
+          description: Claims list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ExpenseClaim"
+    post:
+      tags: [Claims]
+      summary: Create or submit an expense claim
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKeyHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateClaimRequest"
+      responses:
+        "201":
+          description: Created claim
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExpenseClaim"
+
+  /api/v1/claims/{claim_id}:
+    get:
+      tags: [Claims]
+      summary: Get single claim details with audit events and OCR diff
+      parameters:
+        - name: claim_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Claim details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExpenseClaim"
+    patch:
+      tags: [Claims]
+      summary: Amend a DRAFT or RETURNED_FOR_CORRECTION claim
+      parameters:
+        - name: claim_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateClaimRequest"
+      responses:
+        "200":
+          description: Updated claim
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExpenseClaim"
+
+  /api/v1/claims/{claim_id}/withdraw:
+    post:
+      tags: [Claims]
+      summary: Withdraw claim and release soft-reserved IST monthly quota
+      parameters:
+        - name: claim_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Withdrawn claim
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExpenseClaim"
+
+  /api/v1/claims/{claim_id}/approve:
+    post:
+      tags: [Workflow]
+      summary: Approve pending claim (Dept Head for team; Finance Head for DH/FM claims)
+      parameters:
+        - name: claim_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WorkflowCommentRequest"
+      responses:
+        "200":
+          description: Approved claim
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExpenseClaim"
+
+  /api/v1/claims/{claim_id}/return:
+    post:
+      tags: [Workflow]
+      summary: Return claim to claimant for correction/clarification
+      parameters:
+        - name: claim_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WorkflowReasonRequest"
+      responses:
+        "200":
+          description: Returned claim
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExpenseClaim"
+
+  /api/v1/claims/{claim_id}/reject:
+    post:
+      tags: [Workflow]
+      summary: Reject claim and release soft-reserved monthly quota
+      parameters:
+        - name: claim_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WorkflowReasonRequest"
+      responses:
+        "200":
+          description: Rejected claim
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExpenseClaim"
+
+  /api/v1/claims/{claim_id}/verify:
+    post:
+      tags: [Workflow]
+      summary: Finance Manager verification (transitions to VERIFIED_FOR_DISPATCH or ESCALATED_TO_FH)
+      parameters:
+        - name: claim_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WorkflowCommentRequest"
+      responses:
+        "200":
+          description: Verified or escalated claim
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExpenseClaim"
+
+  /api/v1/claims/{claim_id}/override:
+    post:
+      tags: [Workflow]
+      summary: Finance Head exception resolution (override full eligible, clamp to cap, or reject)
+      parameters:
+        - name: claim_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FinanceHeadOverrideRequest"
+      responses:
+        "200":
+          description: Resolved escalated claim
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExpenseClaim"
+
+  /api/v1/claims/{claim_id}/dispatch:
+    post:
+      tags: [Workflow]
+      summary: Dispatch reimbursement funds (FINANCE_MANAGER only, actor != claimant, idempotent)
+      parameters:
+        - name: claim_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: "#/components/parameters/IdempotencyKeyHeader"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DispatchFundsRequest"
+      responses:
+        "200":
+          description: Dispatched claim
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExpenseClaim"
+
+  /api/v1/notifications:
+    get:
+      tags: [Notifications]
+      summary: List notifications for current user
+      parameters:
+        - name: unread_only
+          in: query
+          required: false
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: User notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/NotificationItem"
+
+  /api/v1/notifications/{notification_id}/read:
+    post:
+      tags: [Notifications]
+      summary: Mark a notification as read
+      parameters:
+        - name: notification_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Updated notification
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationItem"
+
+  /api/v1/devices/push-token:
+    post:
+      tags: [Notifications]
+      summary: Register Expo Push Token for current user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PushTokenRequest"
+      responses:
+        "200":
+          description: Token registered
+
+  /api/v1/analytics/overview:
+    get:
+      tags: [Analytics]
+      summary: Enterprise spend analytics overview (FINANCE_HEAD & FINANCE_MANAGER)
+      responses:
+        "200":
+          description: Enterprise analytics summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalyticsOverviewResponse"
+
+  /api/v1/audit-logs:
+    get:
+      tags: [Analytics]
+      summary: Immutable audit event feed (FINANCE_HEAD only)
+      responses:
+        "200":
+          description: Audit events list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ClaimEvent"
+

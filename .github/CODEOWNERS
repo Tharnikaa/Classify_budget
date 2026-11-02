@@ -1,0 +1,19 @@
+# ExpenseIt Ownership Boundaries (Synchronized with AGENTS.md)
+# Replace @COLLABORATOR_GITHUB_HANDLE with your collaborator's GitHub username once added to the repo.
+
+# Shared Contracts & Root Governance (Dual Review)
+/contracts/                     @Tharnikaa
+/AGENTS.md                      @Tharnikaa
+/COLLABORATION.md               @Tharnikaa
+/plan.md                        @Tharnikaa
+/PHASE_0_PLAN.md                @Tharnikaa
+
+# System 1 Owned: Backend Core, DB Models, Migrations, Policy & Workflow
+/backend/                       @Tharnikaa
+/backend/migrations/            @Tharnikaa
+
+# System 2 Owned: Phase 2 OCR Module & Phase 5 React Native / Expo Client
+# (Uncomment and add collaborator handle, e.g. @friend-handle, when collaborator joins repo)
+# /backend/app/ocr/             @friend-handle
+# /mobile/                      @friend-handle
+

@@ -1,0 +1,2 @@
+"""ExpenseIt Backend Application Package."""
+

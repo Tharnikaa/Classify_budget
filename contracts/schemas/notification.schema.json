@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://expenseit.local/contracts/schemas/notification.schema.json",
+  "title": "Notification",
+  "description": "In-app and push notification event schema for ExpenseIt.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "user_id",
+    "type",
+    "title",
+    "message",
+    "deep_link",
+    "is_read",
+    "created_at"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "const": "1.0.0" },
+    "id": { "type": "string", "minLength": 1 },
+    "user_id": { "type": "string", "minLength": 1 },
+    "actor_id": { "type": ["string", "null"] },
+    "type": {
+      "type": "string",
+      "enum": [
+        "CLAIM_SUBMITTED",
+        "DEPT_APPROVED",
+        "CLAIM_RETURNED",
+        "CLAIM_REJECTED",
+        "CLAIM_ESCALATED",
+        "OVERRIDE_APPLIED",
+        "FUNDS_DISPATCHED",
+        "POLICY_LIMIT_UPDATED"
+      ]
+    },
+    "title": { "type": "string", "minLength": 1 },
+    "message": { "type": "string", "minLength": 1 },
+    "claim_id": { "type": ["string", "null"] },
+    "deep_link": { "type": "string", "minLength": 1 },
+    "is_read": { "type": "boolean" },
+    "created_at": { "type": "string" }
+  }
+}
+

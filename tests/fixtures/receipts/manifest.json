@@ -1,0 +1,184 @@
+{
+  "clean_meal": {
+    "image_file": "clean_meal.png",
+    "expected_extraction": {
+      "schema_version": "1.0.0",
+      "receipt_id": "fixture-clean_meal",
+      "image_url": "/api/v1/receipts/fixture-clean_meal/image",
+      "image_sha256": "082ec4a4bfb9fddbe46a39b7a640135bc10032ff853f864783856404efdc07d8",
+      "image_phash": "a1b2c3d4e5f60718",
+      "is_valid_receipt": true,
+      "vendor_name": "Third Wave Coffee Roasters",
+      "vendor_tax_id": "29AABCT1234F1ZP",
+      "invoice_date": "2026-11-02",
+      "detected_currency": "INR",
+      "subtotal_amount_paise": 42000,
+      "tax_amount_paise": 2100,
+      "total_amount_paise": 44100,
+      "suggested_category_code": "MEALS",
+      "confidence_score": 0.97,
+      "field_confidence": {
+        "vendor": 0.99,
+        "date": 0.98,
+        "total": 0.99,
+        "category": 0.94
+      },
+      "line_items": [
+        {
+          "description": "Cappuccino & Sourdough Toast",
+          "quantity": 1.0,
+          "unit_price_paise": 42000,
+          "amount_paise": 42000,
+          "item_tag": "meal"
+        }
+      ]
+    }
+  },
+  "hotel_with_alcohol": {
+    "image_file": "hotel_with_alcohol.png",
+    "expected_extraction": {
+      "schema_version": "1.0.0",
+      "receipt_id": "fixture-hotel_with_alcohol",
+      "image_url": "/api/v1/receipts/fixture-hotel_with_alcohol/image",
+      "image_sha256": "4f0a9a0cdf95eb553ad07e6e3c6c6b241f7ed07fe78c4c9d7109c1dcf743d5cd",
+      "image_phash": "b2c3d4e5f6071829",
+      "is_valid_receipt": true,
+      "vendor_name": "Taj MG Road Bengaluru",
+      "vendor_tax_id": "29AAACT4321K1Z5",
+      "invoice_date": "2026-11-01",
+      "detected_currency": "INR",
+      "subtotal_amount_paise": 600000,
+      "tax_amount_paise": 72000,
+      "total_amount_paise": 672000,
+      "suggested_category_code": "LODGING",
+      "confidence_score": 0.94,
+      "field_confidence": {
+        "vendor": 0.98,
+        "date": 0.96,
+        "total": 0.97,
+        "category": 0.95
+      },
+      "line_items": [
+        {
+          "description": "Deluxe Business Room (1 Night)",
+          "quantity": 1.0,
+          "unit_price_paise": 480000,
+          "amount_paise": 480000,
+          "item_tag": "lodging"
+        },
+        {
+          "description": "Minibar Single Malt Whisky 60ml",
+          "quantity": 1.0,
+          "unit_price_paise": 120000,
+          "amount_paise": 120000,
+          "item_tag": "alcohol"
+        }
+      ]
+    }
+  },
+  "over_cap_flight": {
+    "image_file": "over_cap_flight.png",
+    "expected_extraction": {
+      "schema_version": "1.0.0",
+      "receipt_id": "fixture-over_cap_flight",
+      "image_url": "/api/v1/receipts/fixture-over_cap_flight/image",
+      "image_sha256": "d335cdaef3ebcaa0ad2d55081051857304fb359ab655c77ad74b78ecbb0bb22b",
+      "image_phash": "c3d4e5f60718293a",
+      "is_valid_receipt": true,
+      "vendor_name": "IndiGo Airlines",
+      "vendor_tax_id": "07AABCI9988M1Z2",
+      "invoice_date": "2026-11-02",
+      "detected_currency": "INR",
+      "subtotal_amount_paise": 780000,
+      "tax_amount_paise": 39000,
+      "total_amount_paise": 819000,
+      "suggested_category_code": "TRAVEL",
+      "confidence_score": 0.96,
+      "field_confidence": {
+        "vendor": 0.99,
+        "date": 0.97,
+        "total": 0.98,
+        "category": 0.98
+      },
+      "line_items": [
+        {
+          "description": "BLR -> DEL Return Economy Fare",
+          "quantity": 1.0,
+          "unit_price_paise": 780000,
+          "amount_paise": 780000,
+          "item_tag": "transport"
+        }
+      ]
+    }
+  },
+  "blurry_missing_date": {
+    "image_file": "blurry_missing_date.png",
+    "expected_extraction": {
+      "schema_version": "1.0.0",
+      "receipt_id": "fixture-blurry_missing_date",
+      "image_url": "/api/v1/receipts/fixture-blurry_missing_date/image",
+      "image_sha256": "3e6393e3ca9422a01b1da5ef18bbdfc2f23efdcc32ca1627d55c0cf27222c52b",
+      "image_phash": "d4e5f60718293a4b",
+      "is_valid_receipt": true,
+      "vendor_name": "Local Metered Auto Taxi",
+      "vendor_tax_id": null,
+      "invoice_date": null,
+      "detected_currency": "INR",
+      "subtotal_amount_paise": 38500,
+      "tax_amount_paise": 0,
+      "total_amount_paise": 38500,
+      "suggested_category_code": "TRAVEL",
+      "confidence_score": 0.58,
+      "field_confidence": {
+        "vendor": 0.62,
+        "date": 0.18,
+        "total": 0.79,
+        "category": 0.84
+      },
+      "line_items": [
+        {
+          "description": "City Cab Transfer",
+          "quantity": 1.0,
+          "unit_price_paise": 38500,
+          "amount_paise": 38500,
+          "item_tag": "transport"
+        }
+      ]
+    }
+  },
+  "foreign_usd": {
+    "image_file": "foreign_usd.png",
+    "expected_extraction": {
+      "schema_version": "1.0.0",
+      "receipt_id": "fixture-foreign_usd",
+      "image_url": "/api/v1/receipts/fixture-foreign_usd/image",
+      "image_sha256": "d2599759afc35ec1fa43e1d395797b9f70e50e95576ad4b83dd811ade107cd88",
+      "image_phash": "e5f60718293a4b5c",
+      "is_valid_receipt": true,
+      "vendor_name": "GitHub Inc.",
+      "vendor_tax_id": null,
+      "invoice_date": "2026-11-01",
+      "detected_currency": "USD",
+      "subtotal_amount_paise": 2000,
+      "tax_amount_paise": 0,
+      "total_amount_paise": 2000,
+      "suggested_category_code": "SOFTWARE_TOOLS",
+      "confidence_score": 0.95,
+      "field_confidence": {
+        "vendor": 0.99,
+        "date": 0.98,
+        "total": 0.99,
+        "category": 0.96
+      },
+      "line_items": [
+        {
+          "description": "Copilot Pro Monthly Seat ($20.00 USD)",
+          "quantity": 1.0,
+          "unit_price_paise": 2000,
+          "amount_paise": 2000,
+          "item_tag": "software"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,165 @@
+{
+  "schema_version": "1.0.0",
+  "base_currency": "INR",
+  "company_timezone": "Asia/Kolkata",
+  "receipt_staleness_days": 60,
+  "blacklisted_item_tags": [
+    "alcohol",
+    "tobacco",
+    "gift_card",
+    "personal"
+  ],
+  "roles": {
+    "FINANCE_HEAD": {
+      "display_name": "Finance Head (Overseer)",
+      "description": "Enterprise overseer. Views global analytics and audit logs, approves Dept Head and Finance Manager personal claims, and resolves over-cap escalations. Does not raise personal claims in MVP.",
+      "can_raise_claim": false,
+      "permissions": [
+        "view_all_claims",
+        "view_enterprise_analytics",
+        "approve_manager_claims",
+        "override_escalated_claims",
+        "view_audit_logs"
+      ]
+    },
+    "FINANCE_MANAGER": {
+      "display_name": "Finance Manager",
+      "description": "Configures dynamic categories and spend tier limits, verifies claims against IST monthly caps, and dispatches reimbursements (peer FM dispatches own claims).",
+      "can_raise_claim": true,
+      "permissions": [
+        "raise_claim",
+        "view_own_claims",
+        "view_own_monthly_quota",
+        "view_all_claims",
+        "configure_categories",
+        "configure_tier_limits",
+        "verify_claims",
+        "dispatch_funds"
+      ]
+    },
+    "DEPT_HEAD": {
+      "display_name": "Department Head",
+      "description": "Approves, returns, or rejects claims from employees in their own department. Personal claims route directly to Finance Head.",
+      "can_raise_claim": true,
+      "permissions": [
+        "raise_claim",
+        "view_own_claims",
+        "view_own_monthly_quota",
+        "view_department_claims",
+        "approve_department_claims",
+        "return_department_claims",
+        "reject_department_claims"
+      ]
+    },
+    "EMPLOYEE": {
+      "display_name": "Employee",
+      "description": "Captures receipts, reviews OCR output, submits claims, and tracks personal monthly INR quota.",
+      "can_raise_claim": true,
+      "permissions": [
+        "raise_claim",
+        "view_own_claims",
+        "view_own_monthly_quota"
+      ]
+    }
+  },
+  "spend_tiers": {
+    "JUNIOR": {
+      "display_name": "Junior Tier",
+      "monthly_cap_paise": 1500000
+    },
+    "SENIOR": {
+      "display_name": "Senior Tier",
+      "monthly_cap_paise": 4000000
+    },
+    "MANAGER": {
+      "display_name": "Manager & Dept Head Tier",
+      "monthly_cap_paise": 8500000
+    },
+    "NONE": {
+      "display_name": "Non-Claimant Overseer",
+      "monthly_cap_paise": 0
+    }
+  },
+  "categories": [
+    {
+      "code": "MEALS",
+      "name": "Meals & Refreshments",
+      "description": "Business meals, client dining, team lunches, coffee, and working refreshments.",
+      "is_active": true
+    },
+    {
+      "code": "TRAVEL",
+      "name": "Local & Intercity Travel",
+      "description": "Cab rides (Uber/Ola), metro, rail, flights, airport transfers, and tolls.",
+      "is_active": true
+    },
+    {
+      "code": "LODGING",
+      "name": "Hotel & Lodging",
+      "description": "Business trip hotel stays and accommodation charges (excluding minibar alcohol).",
+      "is_active": true
+    },
+    {
+      "code": "OFFICE_SUPPLIES",
+      "name": "Office Supplies",
+      "description": "Stationery, cables, adapters, printing, and small desk accessories.",
+      "is_active": true
+    },
+    {
+      "code": "SOFTWARE_TOOLS",
+      "name": "Software & Subscriptions",
+      "description": "Approved SaaS tools, cloud developer utilities, and productivity licenses.",
+      "is_active": true
+    },
+    {
+      "code": "INTERNET_PHONE",
+      "name": "Internet & Mobile",
+      "description": "Broadband bills, mobile data packs, and roaming charges for business work.",
+      "is_active": true
+    },
+    {
+      "code": "OTHER",
+      "name": "Miscellaneous Business",
+      "description": "Other documented business expenses not covered by standard categories.",
+      "is_active": true
+    }
+  ],
+  "tier_category_caps_paise": {
+    "MEALS": {
+      "JUNIOR": 50000,
+      "SENIOR": 120000,
+      "MANAGER": 250000
+    },
+    "TRAVEL": {
+      "JUNIOR": 200000,
+      "SENIOR": 500000,
+      "MANAGER": 1200000
+    },
+    "LODGING": {
+      "JUNIOR": 350000,
+      "SENIOR": 650000,
+      "MANAGER": 1200000
+    },
+    "OFFICE_SUPPLIES": {
+      "JUNIOR": 100000,
+      "SENIOR": 250000,
+      "MANAGER": 500000
+    },
+    "SOFTWARE_TOOLS": {
+      "JUNIOR": 150000,
+      "SENIOR": 400000,
+      "MANAGER": 1000000
+    },
+    "INTERNET_PHONE": {
+      "JUNIOR": 100000,
+      "SENIOR": 150000,
+      "MANAGER": 250000
+    },
+    "OTHER": {
+      "JUNIOR": 50000,
+      "SENIOR": 150000,
+      "MANAGER": 300000
+    }
+  }
+}
+

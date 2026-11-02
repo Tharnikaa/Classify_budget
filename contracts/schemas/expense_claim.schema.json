@@ -1,0 +1,183 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://expenseit.local/contracts/schemas/expense_claim.schema.json",
+  "title": "ExpenseClaim",
+  "description": "Complete 10-state Expense Claim lifecycle schema in INR paise with immutable OCR provenance and policy snapshot.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "claimant_id",
+    "claimant_name",
+    "role",
+    "spend_tier",
+    "department_id",
+    "department_name",
+    "vendor_name",
+    "invoice_date",
+    "category_code",
+    "currency",
+    "total_amount_paise",
+    "tax_amount_paise",
+    "blacklisted_deduction_paise",
+    "eligible_amount_paise",
+    "is_over_cap",
+    "over_cap_reasons",
+    "status",
+    "line_items",
+    "ocr_diff",
+    "policy_snapshot",
+    "events",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "const": "1.0.0" },
+    "id": { "type": "string", "minLength": 1 },
+    "receipt_id": { "type": ["string", "null"] },
+    "receipt_url": { "type": ["string", "null"] },
+    "claimant_id": { "type": "string", "minLength": 1 },
+    "claimant_name": { "type": "string", "minLength": 1 },
+    "role": {
+      "type": "string",
+      "enum": ["EMPLOYEE", "DEPT_HEAD", "FINANCE_MANAGER", "FINANCE_HEAD"]
+    },
+    "spend_tier": {
+      "type": "string",
+      "enum": ["JUNIOR", "SENIOR", "MANAGER", "NONE"]
+    },
+    "department_id": { "type": "string", "minLength": 1 },
+    "department_name": { "type": "string", "minLength": 1 },
+    "vendor_name": { "type": "string", "minLength": 1 },
+    "invoice_date": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "category_code": { "type": "string", "minLength": 1 },
+    "description": { "type": ["string", "null"] },
+    "currency": { "type": "string", "const": "INR" },
+    "total_amount_paise": { "type": "integer", "minimum": 0 },
+    "tax_amount_paise": { "type": "integer", "minimum": 0 },
+    "blacklisted_deduction_paise": { "type": "integer", "minimum": 0 },
+    "eligible_amount_paise": { "type": "integer", "minimum": 0 },
+    "approved_amount_paise": { "type": ["integer", "null"], "minimum": 0 },
+    "is_over_cap": { "type": "boolean" },
+    "over_cap_reasons": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "CATEGORY_CAP_EXCEEDED",
+          "MONTHLY_CAP_EXCEEDED",
+          "STALE_RECEIPT",
+          "POTENTIAL_DUPLICATE"
+        ]
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "DRAFT",
+        "PENDING_APPROVAL",
+        "RETURNED_FOR_CORRECTION",
+        "APPROVED_BY_DEPT",
+        "ESCALATED_TO_FH",
+        "VERIFIED_FOR_DISPATCH",
+        "DISPATCHED",
+        "DISPATCH_FAILED",
+        "REJECTED",
+        "WITHDRAWN"
+      ]
+    },
+    "rejection_reason": { "type": ["string", "null"] },
+    "return_comment": { "type": ["string", "null"] },
+    "payment_reference": { "type": ["string", "null"] },
+    "line_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["description", "quantity", "amount_paise", "item_tag", "is_excluded"],
+        "properties": {
+          "description": { "type": "string", "minLength": 1 },
+          "quantity": { "type": "number", "minimum": 0 },
+          "unit_price_paise": { "type": ["integer", "null"], "minimum": 0 },
+          "amount_paise": { "type": "integer", "minimum": 0 },
+          "item_tag": { "type": "string" },
+          "is_excluded": { "type": "boolean" }
+        }
+      }
+    },
+    "ocr_diff": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["ocr_value", "submitted_value"],
+        "properties": {
+          "ocr_value": {},
+          "submitted_value": {}
+        }
+      }
+    },
+    "policy_snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "spend_tier",
+        "category_code",
+        "category_cap_paise",
+        "monthly_cap_paise",
+        "blacklisted_item_tags",
+        "captured_at"
+      ],
+      "properties": {
+        "spend_tier": { "type": "string" },
+        "category_code": { "type": "string" },
+        "category_cap_paise": { "type": "integer", "minimum": 0 },
+        "monthly_cap_paise": { "type": "integer", "minimum": 0 },
+        "blacklisted_item_tags": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "captured_at": { "type": "string" }
+      }
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "actor_id",
+          "actor_name",
+          "actor_role",
+          "action",
+          "from_status",
+          "to_status",
+          "created_at"
+        ],
+        "properties": {
+          "id": { "type": "string" },
+          "actor_id": { "type": "string" },
+          "actor_name": { "type": "string" },
+          "actor_role": { "type": "string" },
+          "action": { "type": "string" },
+          "from_status": { "type": ["string", "null"] },
+          "to_status": { "type": "string" },
+          "comment": { "type": ["string", "null"] },
+          "created_at": { "type": "string" }
+        }
+      }
+    },
+    "submitted_at": { "type": ["string", "null"] },
+    "approved_at": { "type": ["string", "null"] },
+    "verified_at": { "type": ["string", "null"] },
+    "dispatched_at": { "type": ["string", "null"] },
+    "created_at": { "type": "string" },
+    "updated_at": { "type": "string" }
+  }
+}
+

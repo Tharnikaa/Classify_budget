@@ -214,3 +214,4 @@ stateDiagram-v2
 - [ ] **Step 4 — React Native / Expo Shell (`mobile/`):** Scaffold Expo Router 4-tab layout (`Home`, `Claims`, `Snap (+)`, `Profile`), WCAG AA Teal Light/Dark theme provider, `__DEV__` Role Switcher banner, Notification Drawer shell, `expo-image-manipulator` JPEG normalizer, and generated `openapi-typescript` API client.
 - [ ] **Step 5 — CI & Verification Gate:** Configure `.github/workflows/ci.yml`; pass 100% of `pytest` contract/SoD/security tests and `npx tsc --noEmit` in `mobile/`.
 - [ ] **Step 6 — Branch Split Ready:** Merge Phase 0 to `main` and `develop` so System 2 can branch `feature/phase-2-ocr-pipeline` and `feature/phase-5a-mobile-capture`.
+

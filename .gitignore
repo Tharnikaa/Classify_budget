@@ -63,3 +63,8 @@ Thumbs.db
 
 # Local Receipt Uploads
 backend/uploads/
+
+# Local Plan Review Scratchpads
+/plan_review*.md
+/planReview_*.md
+

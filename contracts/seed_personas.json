@@ -1,0 +1,103 @@
+{
+  "schema_version": "1.0.0",
+  "dev_default_password": "ExpenseIt@123",
+  "departments": [
+    {
+      "id": "11111111-1111-4111-8111-111111111101",
+      "code": "ENG",
+      "name": "Engineering",
+      "monthly_budget_paise": 25000000
+    },
+    {
+      "id": "11111111-1111-4111-8111-111111111102",
+      "code": "SALES",
+      "name": "Sales & Partnerships",
+      "monthly_budget_paise": 30000000
+    },
+    {
+      "id": "11111111-1111-4111-8111-111111111103",
+      "code": "FIN",
+      "name": "Finance & Operations",
+      "monthly_budget_paise": 15000000
+    },
+    {
+      "id": "11111111-1111-4111-8111-111111111104",
+      "code": "EXEC",
+      "name": "Executive Leadership",
+      "monthly_budget_paise": 50000000
+    }
+  ],
+  "users": [
+    {
+      "id": "22222222-2222-4222-8222-222222222201",
+      "persona_key": "junior_employee",
+      "full_name": "Aarav Mehta",
+      "email": "aarav.junior@expenseit.in",
+      "role": "EMPLOYEE",
+      "spend_tier": "JUNIOR",
+      "department_id": "11111111-1111-4111-8111-111111111101",
+      "department_name": "Engineering"
+    },
+    {
+      "id": "22222222-2222-4222-8222-222222222202",
+      "persona_key": "senior_employee",
+      "full_name": "Diya Nair",
+      "email": "diya.senior@expenseit.in",
+      "role": "EMPLOYEE",
+      "spend_tier": "SENIOR",
+      "department_id": "11111111-1111-4111-8111-111111111101",
+      "department_name": "Engineering"
+    },
+    {
+      "id": "22222222-2222-4222-8222-222222222203",
+      "persona_key": "eng_dept_head",
+      "full_name": "Rohan Iyer",
+      "email": "rohan.enghead@expenseit.in",
+      "role": "DEPT_HEAD",
+      "spend_tier": "MANAGER",
+      "department_id": "11111111-1111-4111-8111-111111111101",
+      "department_name": "Engineering"
+    },
+    {
+      "id": "22222222-2222-4222-8222-222222222204",
+      "persona_key": "sales_dept_head",
+      "full_name": "Meera Kapoor",
+      "email": "meera.saleshead@expenseit.in",
+      "role": "DEPT_HEAD",
+      "spend_tier": "MANAGER",
+      "department_id": "11111111-1111-4111-8111-111111111102",
+      "department_name": "Sales & Partnerships"
+    },
+    {
+      "id": "22222222-2222-4222-8222-222222222205",
+      "persona_key": "finance_manager_1",
+      "full_name": "Karthik Rao",
+      "email": "karthik.fm1@expenseit.in",
+      "role": "FINANCE_MANAGER",
+      "spend_tier": "MANAGER",
+      "department_id": "11111111-1111-4111-8111-111111111103",
+      "department_name": "Finance & Operations"
+    },
+    {
+      "id": "22222222-2222-4222-8222-222222222206",
+      "persona_key": "finance_manager_2",
+      "full_name": "Neha Verma",
+      "email": "neha.fm2@expenseit.in",
+      "role": "FINANCE_MANAGER",
+      "spend_tier": "MANAGER",
+      "department_id": "11111111-1111-4111-8111-111111111103",
+      "department_name": "Finance & Operations"
+    },
+    {
+      "id": "22222222-2222-4222-8222-222222222207",
+      "persona_key": "finance_head",
+      "full_name": "Vikram Sethi",
+      "email": "vikram.fh@expenseit.in",
+      "role": "FINANCE_HEAD",
+      "spend_tier": "NONE",
+      "department_id": "11111111-1111-4111-8111-111111111104",
+      "department_name": "Executive Leadership"
+    }
+  ]
+}
+

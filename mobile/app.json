@@ -1,0 +1,45 @@
+{
+  "expo": {
+    "name": "ExpenseIt",
+    "slug": "expenseit",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "expenseit",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "in.expenseit.mobile",
+      "infoPlist": {
+        "NSCameraUsageDescription": "ExpenseIt uses the camera to capture corporate expense receipts.",
+        "NSPhotoLibraryUsageDescription": "ExpenseIt accesses your photo library to upload digital receipt images."
+      }
+    },
+    "android": {
+      "package": "in.expenseit.mobile",
+      "permissions": [
+        "CAMERA",
+        "READ_MEDIA_IMAGES"
+      ]
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow ExpenseIt to select receipt photos from your library.",
+          "cameraPermission": "Allow ExpenseIt to capture photos of your receipts."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": false
+    }
+  }
+}
+
