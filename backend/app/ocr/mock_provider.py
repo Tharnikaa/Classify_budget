@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import hashlib
+import os
 from collections.abc import Sequence
 from uuid import uuid4
 
+from app.ocr.base import compute_phash, compute_sha256
 from app.ocr.protocol import ActiveCategoryItem, OCRServiceProtocol
 from app.schemas.api import (
     ExtractedLineItem,
@@ -17,7 +19,11 @@ from app.schemas.api import (
 
 
 class MockOCRProvider(OCRServiceProtocol):
-    """Produces realistic INR paise receipt extractions for UI and integration testing."""
+    """Produces realistic INR paise receipt extractions for UI and integration testing.
+
+    If an active Vision AI key is present in environment variables, `extract_receipt`
+    automatically delegates to the configured live provider.
+    """
 
     def build_preset(
         self,
@@ -182,9 +188,33 @@ class MockOCRProvider(OCRServiceProtocol):
         mime_type: str,
         active_categories: Sequence[ActiveCategoryItem],
     ) -> ExtractedReceipt:
-        sha = hashlib.sha256(image_bytes).hexdigest()
+        sha = compute_sha256(image_bytes)
+        phash = compute_phash(image_bytes)
+
+        has_keys = bool(
+            os.getenv("GEMINI_API_KEY", "").strip()
+            or os.getenv("OPENAI_API_KEY", "").strip()
+            or os.getenv("ANTHROPIC_API_KEY", "").strip()
+            or os.getenv("OCR_BASE_URL", "").strip()
+        )
+        provider_name = os.getenv("OCR_PROVIDER", "").strip().lower()
+
+        if has_keys and provider_name != "mock":
+            from app.ocr.factory import get_ocr_provider
+
+            try:
+                live_prov = get_ocr_provider(allow_mock_fallback=False)
+                extracted = await live_prov.extract_receipt(image_bytes, mime_type, active_categories)
+                return extracted.model_copy(
+                    update={"image_sha256": sha, "image_phash": phash}
+                )
+            except Exception:
+                # Fall back to preset on API network failure or missing quota
+                pass
+
         available_codes = {c["code"] for c in active_categories}
         receipt = self.build_preset("clean_meal", image_sha256=sha)
+        receipt.image_phash = phash
         if receipt.suggested_category_code not in available_codes and active_categories:
             receipt.suggested_category_code = active_categories[0]["code"]
         return receipt

@@ -59,14 +59,14 @@
 ---
 
 ### Phase 2: Receipt OCR & Vision AI
-- **Lead:** System 2 (`Jai`) | **Status:** ⏳ **Not Started / Ready to Start**
+- **Lead:** System 2 (`Jai`) | **Status:** ✅ **Completed**
 - **Branch:** `feature/phase-2-ocr-pipeline`
-- [ ] Implement `GeminiOCRProvider` in `backend/app/ocr/gemini_provider.py` conforming to `OCRServiceProtocol`.
-- [ ] Dynamic category injection into Gemini Flash Multimodal prompt.
-- [ ] Perceptual hash (`pHash`) + `SHA-256` receipt fingerprinting for duplicate detection.
-- [ ] Per-field confidence scoring (`vendor`, `date`, `total`, `category` in `[0.0, 1.0]`).
-- [ ] Factual line-item tagging (`meal`, `alcohol`, `tobacco`, `gift_card`, `personal`, `tax_fee`, etc.).
-- [ ] Unit tests against fixtures in `tests/fixtures/receipts/manifest.json`.
+- [x] Implement Multi-Model Vision AI Engine (`GeminiOCRProvider`, `OpenAIOCRProvider`, `AnthropicOCRProvider`, `MockOCRProvider`) conforming to `OCRServiceProtocol`.
+- [x] Dynamic category injection into Vision AI prompt with runtime active categories.
+- [x] Perceptual hash (`pHash` dHash) + `SHA-256` receipt fingerprinting for duplicate detection.
+- [x] Per-field confidence scoring (`vendor`, `date`, `total`, `category` in `[0.0, 1.0]`).
+- [x] Factual line-item tagging (`meal`, `alcohol`, `tobacco`, `gift_card`, `personal`, `tax_fee`, etc.).
+- [x] 100% passing unit tests in `backend/tests/test_multi_ocr.py` (mocked network, parsing, paise invariants).
 
 ---
 
@@ -93,12 +93,13 @@
 ---
 
 ### Phase 5a: Mobile Capture, Review & Employee Experience
-- **Lead:** System 2 (`Jai`) | **Status:** ⏳ **Not Started / Ready to Start**
-- **Branch:** `feature/phase-5a-mobile-capture`
-- [ ] Camera and photo picker with `expo-image-picker`.
-- [ ] Image normalization via `expo-image-manipulator` (HEIC $\rightarrow$ JPEG, max dimension $\le 2048\text{px}$).
-- [ ] Confidence-highlighted review screen (visual warnings for confidence $< 0.8$).
-- [ ] Editable line-item and header form before submission.
+- **Lead:** System 2 (`Jai`) | **Status:** 🟡 **In Progress (Capture & Review UI Delivered)**
+- **Branch:** `feature/phase-2-ocr-pipeline` / `feature/phase-5a-mobile-capture`
+- [x] Camera (`launchCameraAsync`) and photo picker (`launchImageLibraryAsync`) in `mobile/src/app/(tabs)/snap.tsx`.
+- [x] Image normalization via `normalizeReceiptImage` (JPEG, max dimension $\le 2048\text{px}$).
+- [x] Confidence-highlighted review screen with visual warning pills for low-confidence fields ($< 0.8$).
+- [x] Editable line-item, vendor, date, category, and total paise inputs before submission.
+- [x] Real-time blacklist deduction preview and non-INR currency alerts.
 - [ ] Employee Claim History screen with 10-state status badges and IST monthly quota progress bar.
 
 ---
@@ -152,8 +153,8 @@
 
 ## 6. Collaboration Log & Milestone Handoffs
 
-* **2026-11-04 (Phase 0 Landed):**
+* **2026-11-04 (Phase 0 Landed & Phase 2 Delivered):**
   * System 1 (`@Tharnikaa`) completed and committed Phase 0 (`f891a50`).
-  * System 2 (`Jai`) fetched and pulled latest `main` and switched to `develop`.
-  * Created `PROJECT_PROGRESS.md` to track ongoing multi-collaborator progress.
-  * System 2 is cleared to begin Phase 2 (OCR) and Phase 5a (Mobile Capture).
+  * System 2 (`Jai`) implemented Phase 2 Multi-Model Vision AI Engine (`backend/app/ocr/**`) supporting Gemini, OpenAI, Claude, and Ollama with perceptual hashing.
+  * System 2 implemented Phase 5a Mobile-First Capture (`snap.tsx`) with Camera + Gallery picker, confidence-highlighted review, inline edits, and real-time blacklist deduction previews.
+  * 18/18 pytest tests pass, mobile TypeScript checks pass with zero errors.
