@@ -23,8 +23,12 @@ SYSTEM_OCR_PROMPT = """You are an expert corporate expense receipt extraction AI
 Your task is to analyze the receipt image and extract structured data accurately.
 
 CURRENCY & MONETARY PRECISION:
-- All monetary values must be represented as INTEGERS in minor units: INR paise (1 INR = 100 paise, e.g., ₹450.50 -> 45050 paise).
-- If the receipt is in another currency (e.g. USD, EUR, GBP), extract the numerical minor unit (e.g. $20.00 -> 2000) and specify the detected currency code.
+- All monetary values must be represented as INTEGERS in minor units: INR paise (1 INR = 100 paise).
+- CRITICAL: Always multiply the printed currency amount by 100 to get paise!
+  * Example: ₹420.00 or 420/- -> 42000 paise (NEVER write 420).
+  * Example: ₹21.50 -> 2150 paise.
+  * Example: ₹441.00 -> 44100 paise.
+  * Example: $15.00 -> 1500 cents (with detected_currency="USD").
 - Ensure: total_amount_paise == subtotal_amount_paise + tax_amount_paise (or closest matching breakdown).
 
 CATEGORIES:

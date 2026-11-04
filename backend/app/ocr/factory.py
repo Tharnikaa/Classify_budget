@@ -62,10 +62,11 @@ def get_ocr_provider(
         return AnthropicOCRProvider(api_key=key, model_name=model)
 
     if prov in ("ollama", "local", "openai_compatible"):
-        model = kwargs.get("model_name") or os.getenv("OCR_MODEL", "qwen2-vl")
+        model = kwargs.get("model_name") or os.getenv("OCR_MODEL", "qwen2.5vl:3b")
         key = kwargs.get("api_key") or os.getenv("OCR_API_KEY", "ollama")
         url = kwargs.get("base_url") or base_url
-        return OpenAIOCRProvider(api_key=key, model_name=model, base_url=url)
+        timeout = float(kwargs.get("timeout_seconds") or os.getenv("OCR_TIMEOUT_SECONDS", "90.0"))
+        return OpenAIOCRProvider(api_key=key, model_name=model, base_url=url, timeout_seconds=timeout)
 
     if allow_mock_fallback or prov == "mock":
         return MockOCRProvider()
