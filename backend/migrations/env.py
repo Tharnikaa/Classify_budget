@@ -13,7 +13,9 @@ from app.core.db import Base
 
 config = context.config
 settings = get_settings()
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+existing_url = config.get_main_option("sqlalchemy.url")
+if not existing_url or existing_url in {"sqlite:///./expenseit_dev.db", ""}:
+    config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
